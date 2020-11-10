@@ -5,3 +5,5 @@
 # https://arxiv.org/pdf/1712.01815.pdf
 # neural chess implementation in python
 # https://github.com/maciejczyzewski/neural-chessboard
+# alphazero chess 
+# https://github.com/DylanSnyder31/AlphaZero-Chess
