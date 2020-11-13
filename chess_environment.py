@@ -59,11 +59,17 @@ def U64(init) :
     return(ret)
 
 # global constants
+MAXGAMEMOVES = 2048
 BOARD_SQUARE_NUMBER = 120
 PIECES = Enum("PIECES", "EMPTY wP wN wB wR wQ wK bP bN bB bR bQ bK", start = 0)
 FILES = Enum("FILES", "FILE_A FILE_B FILE_C FILE_D FILE_E FILE_F FILE_G FILE_H FILE_NONE", start = 0)
 RANKS = Enum("RANKS", "RANK_1 RANK_2 RANK_3 RANK_4 RANK_5 RANK_6 RANK_7 RANK_8 RANK_NONE", start = 0)
 COLORS = Enum("COLORS", "WHITE BLACK BOTH")
+
+# adding castling constant
+# we can access the constants through CASTLING.WQCA or SQUARES.H7 for example
+class CASTLING(Enum, start = 1):
+    WKCA = 1; WQCA = 2; BKCA = 4; BQCA = 6;
 
 class SQUARES(Enum, start = 21):
     A1 = 21; B1; C1; D1; E1; F1; G1; H1;
@@ -79,7 +85,7 @@ class SQUARES(Enum, start = 21):
 # this should do the trick 
 # board structure 
 
-class S_BOARD():
+class BOARD():
     def __init__(self):
         # integer list that represents board state
         self.pieces = [0] * BOARD_SQUARE_NUMBER 
@@ -108,6 +114,38 @@ class S_BOARD():
         self.bigPieces = [0] * 3
         self.majPieces = [0] * 3
         self.minPieces = [0] * 3
+        # we can use 4 bit integer to represent castling permissions
+        self.castlePerm = [0]
+        # we can index the history with hisPly to get any point in the history
+        self.history = [UNDO()] * MAXGAMEMOVES
         
+        
+# short structure that is going to be needed to construct the board history
+class UNDO():
+    def __init__(self):
+        self.move = [0]
+        self.castlePerm = [0]
+        self.enPassant = [0]
+        self.fiftyMove = [0]
+        self.posKey = U64(False)
 
-# TODO: undo move structure
+# Array 120 to array 64 indexing is needed 
+
+# TODO: Array120 to Array64 indexing for pawns
+# TODO: Piece Lists 
+# TODO: Bitboards Pop and Count
+# TODO: Setting and clearing bits
+# TODO: Position hashing
+# TODO: Position setup
+# TODO: Parse FEN notations (maybe for trainingsset)
+# TODO: Parse opencv inputs from screenshots
+# TODO: Webscrape match data
+# TODO: Square attacked?
+# TODO: Rank and File Arrays
+# TODO: Move encoding and bit setting
+# TODO: Move generation 
+# TODO: Repetition detection 
+# TODO: Selfplay
+# TODO: Search
+# TODO: Evaluation 
+# TODO: Move ordering and picking
