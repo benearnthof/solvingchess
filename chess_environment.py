@@ -130,6 +130,10 @@ class UNDO():
         self.posKey = U64(False)
 
 # Array 120 to array 64 indexing is needed 
+# The board has 120 squares so we can generate all possible moves easily
+# and then check for their legality later. 
+# the legal board squares are 21 to 98 but the indices for the pawn 
+# representation run from 0 to 63
 
 # TODO: Array120 to Array64 indexing for pawns
 # TODO: Piece Lists 

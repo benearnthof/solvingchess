@@ -1,0 +1,25 @@
+# mastering the gmae of go without human knowledge##############################
+################################################################################
+# uses only black and white stones from the board as input features
+# uses a single neural network to evaluate positions and sample moves
+# does not do any monte carlo rollouts
+# reinforcement learning in alphagozero
+################################################################################
+# the nn outputs a vector of move probabilities and a scalar prediction 
+# the scalar estimates the probability of the current player winning from 
+# position s 
+# nn consists of many residual blocks of concolutional layers with batch norm 
+# and rectifier nonlinearities 
+# the nn is trained from games of self play by a reinforcement learning algo
+# in each position s a mcts search is executed that is guided by the nn f_theta
+# the mcts search outputs probabilities pi of playing each move 
+# mcts serves as a powerful policy improvement operator 
+# each eddge in the search tree stores a prior probability  p(s, a) 
+# a visit count n(s, a) and an action value q(s, a) 
+# each simulation starts from the root state and iteratively selects moves 
+# that maximize an upper confidence bound q(s, a) + u(s, a) where 
+# u(s, a) is proportional to p(s, a) / (1 + n(s, a)) until a leaf node s' is 
+# encountered
+# this leaf position is expanded and evaluated only once by the network to 
+# generate both prior probabilities and evaluation 
+# the neural network contained 20 residual blocks

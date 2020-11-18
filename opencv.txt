@@ -1,0 +1,52 @@
+### opencv #####################################################################
+################################################################################
+# we need to detect when a move was made to only run position encoding and eval 
+# once 
+# use objdetect for object detection 
+# julia module for julia bindings (?)
+# we may be able to simply take screenshots of the board and parse them with 
+# pychess 
+# we're not able to do that because pychess uses PGN notation not PNG files 
+# classic mistake
+# we can however use opencv to translate images of the chess board to the 
+# desired encoding
+# we may use imageprocessing steps to make detection easier and more robust 
+# robustness is not needed because all the pieces look look the same for every 
+# game, only the player colours differ 
+# steps seem to be: 
+# take screenshot
+# preprocess image 
+# detect pieces 
+# encode into board position for inference 
+
+# ideas ########################################################################
+################################################################################
+# use HSV values to "track" pieces by color => detect teams first then detect 
+# pieces 
+# use adaptive gaussian thresholding to reduce image to board and shapes 
+# template matching should work
+# we use a template of every piece and take the fourier transform of it
+# then we template match it to the image
+# does that work with multiple of the same template? 
+# yes it does => template matching with multiple objects 
+# https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_template_matching/py_template_matching.html
+# seems like we need template images of all pieces 
+# pawn rook knight bishop queen king x 2 for both colors 
+
+# this should take care of the object detection step 
+# this should also save us a lot of time in programming/training aswell as make
+# the encoding step lightning fast
+# we may need to get rid of the background first (two colors) 
+
+# we can use harris corner detection to recover the chess board 
+# https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_features_harris/py_features_harris.html
+
+# feature matching may also be possible but overkill for only 12 different 
+possible shapes
+# the background should not matter if we remove it from the templates 
+# also we can just run the detect_pieces function with subfunctions for every 
+# specific piece 
+
+# we can create a pretty much perfect training set with opencv to then 
+# do neural net screenshot to encoding translation 
+# we will save that for later 

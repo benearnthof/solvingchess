@@ -1,0 +1,146 @@
+# chessvision project
+################################################################################
+# step 1 convert screen to digital info => neural chessboard on github
+# step 2 convert info to representation that can be understood by evaluator
+# step 3 evaluate board and return optimal move
+# step 4 make optimal move
+# step 5 repeat with new position 
+
+# questions 
+################################################################################
+# do we write a chessboard recognizer? 
+# how to get training data for chessboard recognizer? 
+# do we write an evaluator
+# how to get training data for evaluator?
+# how deep does the rabbit hole go?
+# why 8 x 8 x 73?
+# is it possible to use hashing to speed up search and evaluation?
+
+# answers 
+################################################################################
+# it should be possible to write the recognizer because training data 
+# acquisition is simple enough
+# what appears unclear at the moment is the optimal way to encode the board 
+# states after recognition
+# we could write a bot that screenshots a couple thousand positions and scrape
+# the encoding off of lichess maybe?
+# writing the evaluator would be the most interesting part
+# i dont understand reinforcement learning at the moment 
+# combining a neural net evaluator with monte carlo tree search would be super
+# interesting but i dont understand how to write that yet
+# the evaluator should train itself based on self play maybe? 
+# we need search built into the training process because else we need access to
+# a working evaluator before having a working evaluator
+# that would defeat the purpose of doing the project
+# the simplest parts should be getting the screenshot off of lichess and then 
+# writing a bot that executes the found move
+
+# todo
+################################################################################
+# read papers and do research
+# write scrapers or get suitable training data
+# write cv based board encoders
+# write nn and mcts based evaluators
+# train models
+# write bot that executes move
+
+# resources 
+################################################################################
+# mastering chess and shogi by self play 
+# https://arxiv.org/pdf/1712.01815.pdf
+# https://github.com/maciejczyzewski/neural-chessboard
+
+# notes
+################################################################################
+# Mastering Chess and Shogi by Self-Play with a General Reinforcement Learning 
+# Algorithm
+# tabula rasa approach of self play
+# non symmetric, positionally dependent, long range interactions, large action 
+# space, may result in draws 
+# we use a deep neural network evaluator (p, v) = f_theta(s) 
+# take board positions s as input and output a vector of move probabilities p 
+# dependent on the parameters theta
+# p_a = Pr(a|s) 
+# for each action a and a scalar value v estimating the expected outcome z from 
+# position s, 
+# v = E[z|s]
+# learns parameters entirely from self play. 
+# use learned parameters to guide search (this may be tricky i think?)
+# use mcts for search
+# each simulation proceeds by selecting in each state s a move a with low visit
+# count, high move probability and high value 
+# (averaged over the leaf states of simulations that selected a from s)
+# the search returns a vector pi representing a probability distribution over 
+# moves either proportionally or greedily (?) with respect to the visit counts
+# at the root state
+# games are played by selecting moves for both players by mcts 
+# at the end the terminal positino sT is scored with -1, 0, 1 
+# the nn parameters are updated so as to minimise the error between the 
+# predicted outcome vt and the game outcome z, *and* to maximise the similarity 
+# of the policy vector pt to the search probabilities pi t
+# mse and cross entropy
+# L2 weight regularisation 
+# updated params are used in subsequent games of self-play
+# asymmetric nature of games => no data augmentation 
+# we maintain a single neural network that is updated continually
+# no game specific tuning of hyperparameters
+# add dirichlet noise to ensure exploration (?) (29)
+# noise is scaled in proportion to the typical number of legal moves for that 
+# game type 
+# board state is encoded in spatial planes based on the rules of the game
+# actions are encoded either in spatial planes or a flat vector
+# training proceeded for 700k steps (minibatches of 4096) 
+# using 5000 first-gen TPUs to generate self-play games 
+# using 64 second-gen TPUs to train the neural networks
+# to run inference they use a machine with 4 TPUs (jesus)
+### Methods
+# none of the classical methods like tablebases or opening books in combination
+# with augmented alpha beta pruning are used for alpha zero
+# MCTS proves advantageous because it averages out approximation errors 
+# introduced by the nonlinear function approximation of a neural net
+### Domain Knowledge
+# the input features describing the position and the output features describing 
+# the move are structured as a set of planes. 
+# => nn architecture is matched to the grid structure of the board
+# perfect knowledge of the game rules
+# knowledge of the rules is also used to encode input planes and output planes 
+# => castling, repetition, no progress, how pieces move, promotions 
+# typical number of legal moves is used to scale exploration noise
+# games exceeding a maximum number of steps were terminated and assigned a drawn 
+# outcome 
+### Representation 
+# The training algorithm worked robustly for many reasonable choices 
+# The input to the neural net is an N x N x (MT + L) image stack that represents 
+# the board position at a time step t-T + 1, ..., t and is set to zero for time 
+# steps less than 1 
+# the board is oriented to the perspective of the current player
+# The M feature planes are composed of binary feature planes indicating the presence 
+# of the players pieces 
+# one plane for each piece type 
+# a second set of planes indicating the presence of the opponent's pieces
+# Additional L constant-valued input planes denoting the player's colour
+# total move count 
+# and state of special rules (legality of castling, repetition count, 
+# and number of moves without progress being made)
+# moves are described in two parts: selecting the piece to move and then selecting 
+# among the legal moves for that piece
+# policy pi(a|s) is a probability distribution over 8 x 8 x 73 legal moves 
+# each of the 8 x 8 positions identifies the square from which to pick a piece
+# the first 56 planes encode possible queen moves 
+# the next 8 planes encode possible knight moves
+# the final 9 planes encode possible underpromotions for pawn moves or captures
+# in two possible diagonals to knight, bishop or rook respectively 
+# other pawn moves or captures from the seventh rank are promoted to a queen 
+# flat distributions over moves for chess and shogi also lead to an almost 
+# identical result, although training is slightly slower 
+# illegal moves are masked out by setting their probabilities to 0 and 
+# renormalizing the probabilities for the remaining moves
+### Configuration 
+# Each MCTS used 800 simulations during training
+# learning rate was set to 0.2 and dropped three times to 0.02, 0.002 and 0.0002
+# moves are selected in proportion to the root visit count
+# Dirichlet noise Dir(alpha) was added to the prior probabilities in the root node
+# this was scaled in inverse proportion to the approximate number of legal moves 
+# in a typical position to values of alpha = 0.3 
+# training and search algorithm and parameters are identical to alpha go zero
+# 
