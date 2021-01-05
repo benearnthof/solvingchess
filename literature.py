@@ -11,3 +11,4 @@
 # https://www.youtube.com/watch?v=x9sPmLt-EBM&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=3
 # enum like in c https://stackoverflow.com/questions/29264941/creating-c-like-enum-in-python
 # accelerating self-play learning in go https://arxiv.org/pdf/1902.10565.pdf
+# directed acyclic graphs for alpha zero https://arxiv.org/pdf/2012.11045.pdf
