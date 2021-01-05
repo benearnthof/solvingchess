@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from os import getcwd as getwd
 from os import chdir as setwd
 
-# setwd("C:\\Users\\Bene\\Desktop\\SolvingChess")
+setwd("C:\\Users\\Bene\\Desktop\\SolvingChess")
 # im = PIL.ImageGrab.grab()
 # im.show()
 

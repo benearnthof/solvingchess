@@ -10,3 +10,4 @@
 # board representations and coding a chess engine in c
 # https://www.youtube.com/watch?v=x9sPmLt-EBM&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=3
 # enum like in c https://stackoverflow.com/questions/29264941/creating-c-like-enum-in-python
+# accelerating self-play learning in go https://arxiv.org/pdf/1902.10565.pdf
