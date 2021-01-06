@@ -122,7 +122,7 @@ class BOARD():
         self.hisPly = [0]
         # position hash 
         # self.posKey = U64(False)
-        self.poskey = mybitarray([0])
+        self.poskey = [0]
         # number of pieces on the board (12 different pieces + empty square)
         self.pceNum = [0] * 13
         # number of big pieces (Anything that is not a pawn) by color
@@ -203,7 +203,7 @@ def ull1():
     ret[63] = 1
     return ret
     
-# bitboards: print, pop, count, set, clear
+# bitboard print
 def printbitboard(bitboard = mybitarray([0]*64)):
     shiftme = ull1()
     printf("\n")
@@ -228,9 +228,53 @@ printbitboard(pbb)
 pbb |= (ull1() << sq64(SQUARES.G2))
 printbitboard(pbb)
 
-# TODO: Bitboards Pop and Count
-# TODO: Setting and clearing bits
-# TODO: Position hashing
+# bitboard pop and count
+def countbits(bitboard = mybitarray([0]*64)): 
+    return sum(bitboard)
+
+# removes the first nonzero bit and returns its index
+def popbit(bitboard = mybitarray([0]*64)): 
+    temp = copy(bitboard)
+    temp.reverse()
+    index_r = temp.index(1)
+    temp[index_r] = 0
+    temp.reverse()
+    return([index_r, temp])
+
+# trying out if everything works accordingly
+pbb = mybitarray([0] * 64)
+pbb |= (ull1() << sq64(SQUARES.D2))
+pbb |= (ull1() << sq64(SQUARES.D3))
+pbb |= (ull1() << sq64(SQUARES.D4))
+printbitboard(pbb)
+pbb = popbit(pbb)
+printbitboard(pbb[1])
+pbb = popbit(pbb[1])
+printbitboard(pbb[1])
+
+# Setting and clearing bits
+def setbit(bitboard = mybitarray([0]*64), index = 0):
+    # i think this is needed
+    index = 63 - index
+    bitboard[index] = 1
+    return bitboard
+
+def clearbit(bitboard = mybitarray([0]*64), index = 0):
+    index = 63 - index
+    bitboard[index] = 0
+    return bitboard
+
+# testing if everything works
+bitboard = mybitarray([0]*64)
+setbit(bitboard, 61)
+printbitboard(bitboard)
+clearbit(bitboard, 61)
+printbitboard(bitboard)
+
+# Position hashing
+
+
+
 # TODO: Position setup
 # TODO: Parse FEN notations (maybe for trainingsset)
 # TODO: Parse opencv inputs from screenshots
