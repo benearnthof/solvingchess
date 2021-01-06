@@ -48,11 +48,15 @@
 # SETTING UP THE BOARD AND CONSTANTS
 # board representation code inspired by this helpful video
 # https://www.youtube.com/watch?v=x9sPmLt-EBM&list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg&index=3
+# most of the code to set up the chess environment is taken from the tutorial series
 # we can use the bitarray library to define 64 bit integers 
 from bitarray import bitarray
 # from aenum import Enum
 from aenum import IntEnum
 import numpy as np
+from copy import copy
+import sys
+# import struct
 # a = bitarray(int(64))
 # a.setall(False)
 # =============================================================================
@@ -155,8 +159,8 @@ class UNDO():
 # representation run from 0 to 63
 # hardcoding the array120 to array64 conversion
 # these are going to be the lookup tables for conversion
-Sq120ToSq64 = np.zeros(BOARD_SQUARE_NUMBER)
-Sq64ToSq120 = np.zeros(64)
+Sq120ToSq64 = np.zeros(BOARD_SQUARE_NUMBER, dtype = int)
+Sq64ToSq120 = np.zeros(64, dtype = int)
 
 # quick function to convert file and rank numbers to board120 numbers
 def filerank2square120(file, rank):
@@ -178,9 +182,51 @@ def initsquare120to64():
 # initializing the lookup tables
 initsquare120to64()
 
-# bitboards, pop, count, set, clear
+# utils to make arrays callable
+def sq64(square):
+    return Sq120ToSq64[square]
 
+def sq120(square):
+    return Sq64ToSq120[square]
 
+# util to convert bitarray to int
+def ba2int(ba):
+    return int.from_bytes(ba, byteorder = ba.endian())
+
+# util to get correct print behavior
+def printf(format, *args):
+    sys.stdout.write(format % args)
+    
+# util to get a pseudo 1ULL
+def ull1(): 
+    ret = mybitarray([0]*64)
+    ret[63] = 1
+    return ret
+    
+# bitboards: print, pop, count, set, clear
+def printbitboard(bitboard = mybitarray([0]*64)):
+    shiftme = ull1()
+    printf("\n")
+    for rank in range(RANKS.RANK_8, -1, -1):
+        for file in range(FILES.FILE_A, 8, 1):
+            square = filerank2square120(file, rank) # 120 based
+            square64 = Sq120ToSq64[square]          # 64 based
+            # we can check if a square is occupied by looping through bitshifts
+            # and a bitwise and with the bitboard to check
+            if (sum((shiftme << square64) & bitboard)):
+                printf("X")
+            else:
+                printf("O")
+        printf("\n")
+    printf("\n\n")
+
+# trying out if everything works accordingly
+pbb = mybitarray([0] * 64)
+printbitboard(pbb)
+pbb |= (ull1() << sq64(SQUARES.D2))
+printbitboard(pbb)
+pbb |= (ull1() << sq64(SQUARES.G2))
+printbitboard(pbb)
 
 # TODO: Bitboards Pop and Count
 # TODO: Setting and clearing bits
