@@ -55,10 +55,20 @@ from aenum import IntEnum
 import numpy as np
 # a = bitarray(int(64))
 # a.setall(False)
-def U64(init):
-    ret = bitarray(64)
-    ret.setall(init)
-    return(ret)
+# =============================================================================
+# def U64(init):
+#     ret = bitarray(64)
+#     ret.setall(init)
+#     return(ret)
+# =============================================================================
+
+class mybitarray(bitarray):
+    def __lshift__(self, count):
+        return self[count:] + type(self)('0') * count
+    def __rshift__(self, count):
+        return type(self)('0') * count + self[:-count]
+    def __repr__(self):
+        return "{}('{}')".format(type(self).__name__,self.to01())
 
 # global constants
 MAXGAMEMOVES = 2048
@@ -93,7 +103,7 @@ class BOARD():
         self.pieces = [0] * BOARD_SQUARE_NUMBER 
         # white black and both pawn positions
         # bits are 1 if there is a pawn and 0 if there is no pawn 
-        self.pawns = [U64(False), U64(False), U64(False)]
+        self.pawns = [mybitarray([0] * 64), mybitarray([0] * 64),mybitarray([0] * 64)]
         # square numbers of both kings
         self.KingSquares = [0] * 2
         # current side to move
@@ -107,7 +117,8 @@ class BOARD():
         # we store the board history in a list
         self.hisPly = [0]
         # position hash 
-        self.posKey = U64(False)
+        # self.posKey = U64(False)
+        self.poskey = mybitarray([0])
         # number of pieces on the board (12 different pieces + empty square)
         self.pceNum = [0] * 13
         # number of big pieces (Anything that is not a pawn) by color
@@ -121,7 +132,7 @@ class BOARD():
         # we can index the history with hisPly to get any point in the history
         self.history = [UNDO()] * MAXGAMEMOVES
         # piece list to speed up search later on
-        pList = np.zeros([13,10])
+        self.pList = np.zeros([13,10])
         # adding a white knight o E1:
         # pLIST[PIECES.wN, 0] = SQUARES.E1
         # adding white knight to D4
@@ -135,7 +146,7 @@ class UNDO():
         self.castlePerm = [0]
         self.enPassant = [0]
         self.fiftyMove = [0]
-        self.posKey = U64(False)
+        self.posKey = mybitarray([0])
 
 # Array 120 to array 64 indexing is needed 
 # The board has 120 squares so we can generate all possible moves easily
@@ -167,6 +178,7 @@ def initsquare120to64():
 # initializing the lookup tables
 initsquare120to64()
 
+# bitboards, pop, count, set, clear
 
 
 
