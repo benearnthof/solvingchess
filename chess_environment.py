@@ -56,6 +56,7 @@ from aenum import IntEnum
 import numpy as np
 from copy import copy
 import sys
+import random
 # import struct
 # a = bitarray(int(64))
 # a.setall(False)
@@ -272,8 +273,17 @@ clearbit(bitboard, 61)
 printbitboard(bitboard)
 
 # Position hashing
+piecekeys = np.zeros((13, 120))
+sidekey = 0
+castlekeys = np.zeros(16)
 
+# initializing hash keys 
+def inithashkeys():
+    piecekeys = np.random.randint(2**63, size = (13, 120), dtype = np.uint64)
+    sidekey = np.random.randint(2**63, size = 1, dtype = np.uint64)
+    castlekeys = np.random.randint(2**63, size = 16, dtype = np.uint64)
 
+# generating position keys
 
 # TODO: Position setup
 # TODO: Parse FEN notations (maybe for trainingsset)
@@ -282,7 +292,9 @@ printbitboard(bitboard)
 # TODO: Square attacked?
 # TODO: Rank and File Arrays
 # TODO: Move encoding and bit setting
-# TODO: Move generation 
+# TODO: Move generation
+# TODO: Make Move
+# TODO: Perft testing 
 # TODO: Repetition detection 
 # TODO: Selfplay
 # TODO: Search
