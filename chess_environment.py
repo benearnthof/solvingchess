@@ -232,6 +232,17 @@ def printbitboard(bitboard = mybitarray([0]*64)):
                 printf("O")
         printf("\n")
     printf("\n\n")
+    
+# util to check board setup - needs to be expanded in the future
+def printboard(board = BOARD()):
+    for i in range(0, 120, 1):
+        if board.pieces[i] == 100:
+            printf("\0")
+        else: 
+            printf("0")
+        if i % 10 == 9:
+            printf("\n")
+        
 
 # trying out if everything works accordingly
 pbb = mybitarray([0] * 64)
@@ -328,8 +339,14 @@ testboard = BOARD()
 testkeys = inithashkeys()
 testposkey = generateposkey(testboard, testkeys)
         
-# TODO: Position setup
-# TODO: Parse FEN notations (maybe for trainingsset)
+# Position setup & FEN parsing
+# https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+def parsefen (fen):
+    assert type(fen) == str
+    board = BOARD()
+    # add switch shenanigans 
+    
 # TODO: Parse opencv inputs from screenshots
 # TODO: Webscrape match data
 # TODO: Square attacked?
