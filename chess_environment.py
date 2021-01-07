@@ -98,45 +98,54 @@ class SQUARES(IntEnum, start = 21):
     A6 = 71; B6; C6; D6; E6; F6; G6; H6;
     A7 = 81; B7; C7; D7; E7; F7; G7; H7;
     A8 = 91; B8; C8; D8; E8; F8; G8; H8; NO_SQ;
+    OFFBOARD = 100;
     
     
 # this should do the trick 
-# board structure 
+# util for board init
+def fillempty(pieces):
+    index = range(0, 64)
+    index = sq120(index)
+    pieces[index] = PIECES.EMPTY
+    return(pieces)
 
-# TODO: Convert everything to np.arrays
+# board structure 
+# resetboard is equal to init empty board 
 class BOARD():
     def __init__(self):
         # integer list that represents board state
         # self.pieces = [0] * BOARD_SQUARE_NUMBER 
         self.pieces = np.zeros(BOARD_SQUARE_NUMBER, dtype = int)
+        self.pieces.fill(SQUARES.OFFBOARD)
+        self.pieces = fillempty(self.pieces)
         # white black and both pawn positions
         # bits are 1 if there is a pawn and 0 if there is no pawn 
         self.pawns = [mybitarray([0] * 64), mybitarray([0] * 64),mybitarray([0] * 64)]
         # square numbers of both kings
-        self.KingSquares = [0] * 2
+        self.KingSquares = np.array([SQUARES.NO_SQ, SQUARES.NO_SQ])
         # current side to move
-        self.side = 0
+        self.side = COLORS.BOTH
         # en passant square
         self.enPassant = SQUARES.NO_SQ
         # fifty move rule 
-        self.fiftyMove = [0]
+        self.fiftyMove = 0
         # how many half moves are we into the current game
-        self.ply = [0]
+        self.ply = 0
         # we store the board history in a list
-        self.hisPly = [0]
+        self.hisPly = 0
         # position hash 
         # self.posKey = U64(False)
-        self.poskey = 0
+        self.poskey = np.uint64()
         # number of pieces on the board (12 different pieces + empty square)
-        self.pceNum = [0] * 13
+        self.pceNum = np.zeros(13, dtype = int)
         # number of big pieces (Anything that is not a pawn) by color
         # major = Rooks, Queens
         # minor = Bishops, Knights
-        self.bigPieces = [0] * 3
-        self.majPieces = [0] * 3
-        self.minPieces = [0] * 3
+        self.bigPieces = np.zeros(3, dtype = int)
+        self.majPieces = np.zeros(3, dtype = int)
+        self.minPieces = np.zeros(3, dtype = int)
         # we can use 4 bit integer to represent castling permissions
-        self.castlePerm = CASTLING(1) ^ CASTLING(2) ^ CASTLING(4) ^ CASTLING(8)
+        self.castlePerm = 0
         # we can index the history with hisPly to get any point in the history
         self.history = [UNDO()] * MAXGAMEMOVES
         # piece list to speed up search later on
