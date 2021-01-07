@@ -56,7 +56,6 @@ from aenum import IntEnum
 import numpy as np
 from copy import copy
 import sys
-import random
 # import struct
 # a = bitarray(int(64))
 # a.setall(False)
@@ -86,7 +85,9 @@ COLORS = IntEnum("COLORS", "WHITE BLACK BOTH")
 # adding castling constant
 # we can access the constants through CASTLING.WQCA or SQUARES.H7 for example
 class CASTLING(IntEnum, start = 1):
-    WKCA = 1; WQCA = 2; BKCA = 4; BQCA = 6;
+    WKCA = 1; WQCA = 2; BKCA = 4; BQCA = 8;
+# we simply call CASTLING with an index in 1 2 4 8 
+# and can fight out total castling rights by bitwise or
 
 class SQUARES(IntEnum, start = 21):
     A1 = 21; B1; C1; D1; E1; F1; G1; H1;
@@ -102,19 +103,21 @@ class SQUARES(IntEnum, start = 21):
 # this should do the trick 
 # board structure 
 
+# TODO: Convert everything to np.arrays
 class BOARD():
     def __init__(self):
         # integer list that represents board state
-        self.pieces = [0] * BOARD_SQUARE_NUMBER 
+        # self.pieces = [0] * BOARD_SQUARE_NUMBER 
+        self.pieces = np.zeros(BOARD_SQUARE_NUMBER, dtype = int)
         # white black and both pawn positions
         # bits are 1 if there is a pawn and 0 if there is no pawn 
         self.pawns = [mybitarray([0] * 64), mybitarray([0] * 64),mybitarray([0] * 64)]
         # square numbers of both kings
         self.KingSquares = [0] * 2
         # current side to move
-        self.side = [0]
+        self.side = 0
         # en passant square
-        self.enPassant = [0]
+        self.enPassant = SQUARES.NO_SQ
         # fifty move rule 
         self.fiftyMove = [0]
         # how many half moves are we into the current game
@@ -123,7 +126,7 @@ class BOARD():
         self.hisPly = [0]
         # position hash 
         # self.posKey = U64(False)
-        self.poskey = [0]
+        self.poskey = 0
         # number of pieces on the board (12 different pieces + empty square)
         self.pceNum = [0] * 13
         # number of big pieces (Anything that is not a pawn) by color
@@ -133,7 +136,7 @@ class BOARD():
         self.majPieces = [0] * 3
         self.minPieces = [0] * 3
         # we can use 4 bit integer to represent castling permissions
-        self.castlePerm = [0]
+        self.castlePerm = CASTLING(1) ^ CASTLING(2) ^ CASTLING(4) ^ CASTLING(8)
         # we can index the history with hisPly to get any point in the history
         self.history = [UNDO()] * MAXGAMEMOVES
         # piece list to speed up search later on
@@ -273,18 +276,49 @@ clearbit(bitboard, 61)
 printbitboard(bitboard)
 
 # Position hashing
-piecekeys = np.zeros((13, 120))
-sidekey = 0
-castlekeys = np.zeros(16)
+# =============================================================================
+# piecekeys = np.zeros((13, 120))
+# sidekey = 0
+# castlekeys = np.zeros(16)
+# =============================================================================
 
 # initializing hash keys 
 def inithashkeys():
     piecekeys = np.random.randint(2**63, size = (13, 120), dtype = np.uint64)
     sidekey = np.random.randint(2**63, size = 1, dtype = np.uint64)
     castlekeys = np.random.randint(2**63, size = 16, dtype = np.uint64)
+    ret = {
+        "pkey": piecekeys,
+        "skey": sidekey, 
+        "ckey": castlekeys
+        }
+    return(ret)
 
-# generating position keys
-
+# the idea is to initialize the hashkeys as tables of random integers at the 
+# start of the game and then encode the current board state with "bitwise or"
+# generating position key
+def generateposkey(board, hashkeys):
+    finalkey = np.uint64()
+    piece = PIECES.EMPTY
+    for square in range(0, BOARD_SQUARE_NUMBER, 1):
+        piece = board.pieces[square]
+        if piece != SQUARES.NO_SQ and piece != PIECES.EMPTY:
+            assert piece >= PIECES.wP and piece <= PIECES.bK
+            finalkey ^= hashkeys["pkey"][piece, square]
+    if board.side == COLORS.WHITE:
+        finalkey ^= hashkeys["skey"][0]
+    if board.enPassant != SQUARES.NO_SQ:
+        assert board.enPassant >= 0 and board.enPassant 
+        finalkey ^= hashkeys["pkey"][PIECES.EMPTY, board.enPassant]
+    assert board.castlePerm >= 0 and board.castlePerm <= 15
+    finalkey ^= hashkeys["ckey"][board.castlePerm]
+    return(finalkey)
+            
+# testing positionkey generation with emptyboard and testhashkeys
+testboard = BOARD()
+testkeys = inithashkeys()
+testposkey = generateposkey(testboard, testkeys)
+        
 # TODO: Position setup
 # TODO: Parse FEN notations (maybe for trainingsset)
 # TODO: Parse opencv inputs from screenshots
