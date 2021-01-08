@@ -81,6 +81,7 @@ PIECES = IntEnum("PIECES", "EMPTY wP wN wB wR wQ wK bP bN bB bR bQ bK", start = 
 FILES = IntEnum("FILES", "FILE_A FILE_B FILE_C FILE_D FILE_E FILE_F FILE_G FILE_H FILE_NONE", start = 0)
 RANKS = IntEnum("RANKS", "RANK_1 RANK_2 RANK_3 RANK_4 RANK_5 RANK_6 RANK_7 RANK_8 RANK_NONE", start = 0)
 COLORS = IntEnum("COLORS", "WHITE BLACK BOTH")
+START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 # adding castling constant
 # we can access the constants through CASTLING.WQCA or SQUARES.H7 for example
@@ -236,10 +237,36 @@ def printbitboard(bitboard = mybitarray([0]*64)):
 # util to check board setup - needs to be expanded in the future
 def printboard(board = BOARD()):
     for i in range(0, 120, 1):
-        if board.pieces[i] == 100:
+        if board.pieces[i] == SQUARES.OFFBOARD:
             printf("\0")
-        else: 
+        elif board.pieces[i] == PIECES.EMPTY:
             printf("0")
+        elif board.pieces[i] == PIECES.bB:
+            printf("b")
+        elif board.pieces[i] == PIECES.bK:
+            printf("k")
+        elif board.pieces[i] == PIECES.bN:
+            printf("n")
+        elif board.pieces[i] == PIECES.bP:
+            printf("p")
+        elif board.pieces[i] == PIECES.bQ:
+            printf("q")
+        elif board.pieces[i] == PIECES.bR:
+            printf("r")
+        elif board.pieces[i] == PIECES.wB:
+            printf("B")
+        elif board.pieces[i] == PIECES.wK:
+            printf("K")
+        elif board.pieces[i] == PIECES.wN:
+            printf("N")
+        elif board.pieces[i] == PIECES.wP:
+            printf("P")
+        elif board.pieces[i] == PIECES.wQ:
+            printf("Q")
+        elif board.pieces[i] == PIECES.wR:
+            printf('R')
+        else:
+            print("default")
         if i % 10 == 9:
             printf("\n")
         
@@ -322,7 +349,7 @@ def generateposkey(board, hashkeys):
     piece = PIECES.EMPTY
     for square in range(0, BOARD_SQUARE_NUMBER, 1):
         piece = board.pieces[square]
-        if piece != SQUARES.NO_SQ and piece != PIECES.EMPTY:
+        if piece != SQUARES.NO_SQ and piece != PIECES.EMPTY and piece != SQUARES.OFFBOARD:
             assert piece >= PIECES.wP and piece <= PIECES.bK
             finalkey ^= hashkeys["pkey"][piece, square]
     if board.side == COLORS.WHITE:
@@ -341,12 +368,58 @@ testposkey = generateposkey(testboard, testkeys)
         
 # Position setup & FEN parsing
 # https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
-startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-def parsefen (fen):
+def parsefen (fen = START_FEN):
     assert type(fen) == str
     board = BOARD()
-    # add switch shenanigans 
-    
+    rank = RANKS.RANK_8
+    file = FILES.FILE_A
+    piece = 0
+    # sqare64 = 0
+    square120 = 0
+    index = 0
+    while rank >= RANKS.RANK_1 and index < len(fen):
+        count = 1
+        if fen[index] == 'p': 
+            piece = PIECES.bP
+        elif fen[index] == 'r': 
+                piece = PIECES.bR
+        elif fen[index] == 'n': piece = PIECES.bN
+        elif fen[index] == 'b': piece = PIECES.bB
+        elif fen[index] == 'k': piece = PIECES.bK
+        elif fen[index] == 'q': piece = PIECES.bQ
+        elif fen[index] == 'P': piece = PIECES.wP
+        elif fen[index] == 'R': piece = PIECES.wR
+        elif fen[index] == 'N': piece = PIECES.wN
+        elif fen[index] == 'B': piece = PIECES.wB
+        elif fen[index] == 'K': piece = PIECES.wK
+        elif fen[index] == 'Q': piece = PIECES.wQ
+        elif fen[index] in '12345678': 
+            piece = PIECES.EMPTY
+            count = int(fen[index])
+        elif fen[index] in " /":
+            rank = rank - 1
+            file = FILES.FILE_A
+            index = index + 1
+            continue
+        else: 
+            printf("FEN error \n")
+            return(-1)
+        for i in range(0, count, 1):
+            square64 = rank * 8 + file
+            square120 = sq120(square64)
+            if piece != PIECES.EMPTY:
+                board.pieces[square120] = piece
+            file = file + 1
+        index = index + 1
+    return(board)
+
+test = parsefen()
+printboard(test)
+test2 = parsefen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2 ")
+printboard(test2)
+
+# everything seems to work!
+
 # TODO: Parse opencv inputs from screenshots
 # TODO: Webscrape match data
 # TODO: Square attacked?
