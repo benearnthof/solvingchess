@@ -330,7 +330,8 @@ printbitboard(bitboard)
 # =============================================================================
 
 # initializing hash keys 
-def inithashkeys():
+def inithashkeys(seed = 0):
+    np.random.seed(seed)
     piecekeys = np.random.randint(2**63, size = (13, 120), dtype = np.uint64)
     sidekey = np.random.randint(2**63, size = 1, dtype = np.uint64)
     castlekeys = np.random.randint(2**63, size = 16, dtype = np.uint64)
@@ -373,30 +374,58 @@ def parsefen (fen = START_FEN):
     board = BOARD()
     rank = RANKS.RANK_8
     file = FILES.FILE_A
-    piece = 0
-    # sqare64 = 0
-    square120 = 0
+    # piece = 0
+    # get the side and split the board setup from the rest of the info
+    if " w " in fen:
+        head = fen.split(" w ")[0]
+        tail = fen.split(" w ")[1]
+        board.side = COLORS.WHITE
+    else: 
+        head = fen.split(" b ")[0]
+        tail = fen.split(" b ")[1]
+        board.side = COLORS.BLACK
+    # setup castling rights and rest of info    
+    for i in range(0, 4, 1):
+        if tail[i] == 'K': 
+            board.castlePerm = board.castlePerm | CASTLING.WKCA
+        elif tail[i] == 'Q': board.castlePerm = board.castlePerm | CASTLING.WQCA
+        elif tail[i] == 'k': board.castlePerm = board.castlePerm | CASTLING.BKCA
+        elif tail[i] == 'q': board.castlePerm = board.castlePerm | CASTLING.BQCA
+        else: 
+            print("default")
+    # set en passant square
+    tail = tail.split()[1:]
+    if tail[0] != '-':
+        # use ascii conversion to avoid conversion table
+        enpasfile = ord(tail[0][0]) - ord('a')
+        enpasrank = ord(tail[0][1]) - ord('1')
+        board.enPassant = filerank2square120(enpasfile, enpasrank)
+    # set 50 move rule
+    board.fiftyMove = int(tail[1])
+    # set ply
+    board.ply = int(tail[2])
+    # setup pieces
     index = 0
-    while rank >= RANKS.RANK_1 and index < len(fen):
+    while rank >= RANKS.RANK_1 and index < len(head):
         count = 1
-        if fen[index] == 'p': 
+        if head[index] == 'p': 
             piece = PIECES.bP
-        elif fen[index] == 'r': 
+        elif head[index] == 'r': 
                 piece = PIECES.bR
-        elif fen[index] == 'n': piece = PIECES.bN
-        elif fen[index] == 'b': piece = PIECES.bB
-        elif fen[index] == 'k': piece = PIECES.bK
-        elif fen[index] == 'q': piece = PIECES.bQ
-        elif fen[index] == 'P': piece = PIECES.wP
-        elif fen[index] == 'R': piece = PIECES.wR
-        elif fen[index] == 'N': piece = PIECES.wN
-        elif fen[index] == 'B': piece = PIECES.wB
-        elif fen[index] == 'K': piece = PIECES.wK
-        elif fen[index] == 'Q': piece = PIECES.wQ
-        elif fen[index] in '12345678': 
+        elif head[index] == 'n': piece = PIECES.bN
+        elif head[index] == 'b': piece = PIECES.bB
+        elif head[index] == 'k': piece = PIECES.bK
+        elif head[index] == 'q': piece = PIECES.bQ
+        elif head[index] == 'P': piece = PIECES.wP
+        elif head[index] == 'R': piece = PIECES.wR
+        elif head[index] == 'N': piece = PIECES.wN
+        elif head[index] == 'B': piece = PIECES.wB
+        elif head[index] == 'K': piece = PIECES.wK
+        elif head[index] == 'Q': piece = PIECES.wQ
+        elif head[index] in '12345678': 
             piece = PIECES.EMPTY
-            count = int(fen[index])
-        elif fen[index] in " /":
+            count = int(head[index])
+        elif head[index] in " /":
             rank = rank - 1
             file = FILES.FILE_A
             index = index + 1
@@ -411,15 +440,19 @@ def parsefen (fen = START_FEN):
                 board.pieces[square120] = piece
             file = file + 1
         index = index + 1
+    # set poskey
+    board.poskey = generateposkey(board, inithashkeys())
     return(board)
 
 test = parsefen()
+test.poskey
 printboard(test)
 test2 = parsefen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2 ")
 printboard(test2)
 
 # everything seems to work!
 
+# TODO: Add docstrings 
 # TODO: Parse opencv inputs from screenshots
 # TODO: Webscrape match data
 # TODO: Square attacked?
