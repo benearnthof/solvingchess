@@ -13,3 +13,4 @@
 # accelerating self-play learning in go https://arxiv.org/pdf/1902.10565.pdf
 # directed acyclic graphs for alpha zero https://arxiv.org/pdf/2012.11045.pdf
 # https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+# https://maiachess.com/ human like move gen

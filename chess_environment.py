@@ -240,7 +240,7 @@ def printboard(board = BOARD()):
         if board.pieces[i] == SQUARES.OFFBOARD:
             printf("\0")
         elif board.pieces[i] == PIECES.EMPTY:
-            printf("0")
+            printf(".")
         elif board.pieces[i] == PIECES.bB:
             printf("b")
         elif board.pieces[i] == PIECES.bK:
@@ -269,7 +269,33 @@ def printboard(board = BOARD()):
             print("default")
         if i % 10 == 9:
             printf("\n")
-        
+
+# other printboard function that rotates the board accordingly
+def printboard2(board):
+    piecestr = ".PNBRQKpnbrqk"
+    sidestr = "wb-"
+    rankstr = "12345678"
+    filestr = "abcdefgh"
+    for rank in range(RANKS.RANK_8, RANKS.RANK_1-1, -1):
+        printf("%d  ", (rank + 1))
+        for file in range(FILES.FILE_A, FILES.FILE_H+1, 1):
+            square = filerank2square120(file, rank)
+            piece = board.pieces[square]
+            printf("%3c", piecestr[piece])
+        printf("\n")
+    for file in range(FILES.FILE_A, FILES.FILE_H+1, 1):
+        if file == 0: printf("   ")
+        printf("%3c",(chr(ord('a') + file)))
+    printf("\n")
+    printf("Side: %c\n", sidestr[board.side])
+    printf("En Passant: %d\n", board.enPassant)
+    printf("Castle: %c%c%c%c\n", 
+           "K" if board.castlePerm & CASTLING.WKCA else "-",
+           "Q" if board.castlePerm & CASTLING.WQCA else "-",
+           "k" if board.castlePerm & CASTLING.BKCA else "-",
+           "q" if board.castlePerm & CASTLING.BQCA else "-",
+           )
+    printf("Position Key: %11x\n", board.poskey)
 
 # trying out if everything works accordingly
 pbb = mybitarray([0] * 64)
@@ -449,8 +475,13 @@ test.poskey
 printboard(test)
 test2 = parsefen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2 ")
 printboard(test2)
-
 # everything seems to work!
+# testing printboard2 function
+printboard2(test2)
+# it works indeed. last move is knight f3, position keys also work
+# testing en passant square
+test3 = parsefen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
+printboard2(test3)
 
 # TODO: Add docstrings 
 # TODO: Parse opencv inputs from screenshots
