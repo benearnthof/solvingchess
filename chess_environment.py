@@ -109,7 +109,25 @@ class SQUARES(IntEnum, start = 21):
     A8 = 91; B8; C8; D8; E8; F8; G8; H8; NO_SQ;
     OFFBOARD = 100;
     
-    
+# filerank arrays to lookup filerank of boardsquarenumbers    
+FilesBrd = np.zeros(BOARD_SQUARE_NUMBER, dtype = int)
+RanksBrd = np.zeros(BOARD_SQUARE_NUMBER, dtype = int)
+
+def initfilerankarrays():
+    FilesBrd[:] = SQUARES.OFFBOARD
+    RanksBrd[:] = SQUARES.OFFBOARD
+    for rank in range(RANKS.RANK_1, RANKS.RANK_8 + 1, 1):
+        for file in range(FILES.FILE_A, FILES.FILE_H + 1, 1):
+            square = filerank2square120(file, rank)
+            FilesBrd[square] = file
+            RanksBrd[square] = rank
+
+# helper function to verify that filerankarrays have been initialized correctly    
+def printfileranksboard(filesboard):
+    for i in range(0, BOARD_SQUARE_NUMBER, 1):
+        if i%10 == 0 and i != 0: printf("\n")
+        printf("%4d", filesboard[i])
+        
 # this should do the trick 
 # util for board init
 def fillempty(pieces):
@@ -182,6 +200,13 @@ class BOARD():
                 # setting king squares
                 if piece == PIECES.wK: self.KingSquares[COLORS.WHITE] = square
                 if piece == PIECES.bK: self.KingSquares[COLORS.BLACK] = square
+                # setting pawn bitboards
+                if piece == PIECES.wP:
+                    setbit(self.pawns[COLORS.WHITE], sq64(square))
+                    setbit(self.pawns[COLORS.BOTH], sq64(square))
+                elif piece == PIECES.bP:
+                    setbit(self.pawns[COLORS.BLACK], sq64(square))
+                    setbit(self.pawns[COLORS.BOTH], sq64(square))
         
 # short structure that is going to be needed to construct the board history
 # TODO: rewrite this as method for board class
@@ -510,14 +535,59 @@ printboard2(test2)
 test3 = parsefen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
 printboard2(test3)
 
-# piecelists #18
+# testing piecelist updating function
+test = parsefen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
 
+# testing by generating a random fen and printing the board
+def generatefen():
+    chars = list('1KQRBNPkqrbnp')
+    pieces = np.random.choice(chars, 64)
+    fen = '/'.join([''.join(pieces[i*8:(i+1)*8]) for i in range(8)])
+    # fen = fen + ' b KQkq e3 0 1'
+    return(fen)
+
+# printing random boards for the fun of it
+def funkyboards(n = 5):
+    np.random.seed()
+    temp = [generatefen() for i in range(0, n, 1)]
+    boards = [parsefen(temp[j]) for j in range(0, n, 1)]
+    for k in range(0, n, 1):
+        printboard2(boards[k])    
+       
+# =============================================================================
+#         board = parsefen(temp)
+#         printboard2(board)
+# =============================================================================
+
+funkyboards()
+# can we generate screenshots of the board from a random fen string?
+# https://github.com/Elucidation/tensorflow_chessbot/blob/master/tensorflow_generate_training_data.ipynb
+import PIL
+import os
+from IPython.display import Image, display
+import feedparser
+import subprocess
+
+url = "http://en.lichess.org/editor/%s"% generatefen()
+output_filename = "testA.png"
+
+d = feedparser.parse(url)
+link = d.entries[0].link
+title = d.entries[0].title
+
+def scrape_url(url, outpath):
+    """
+    Requires webkit2png to be on the path
+    """
+    subprocess.call(["webkit2png", "-o", outpath, "-g", "1000", "1260",
+                     "-t", "30", url])
+
+scrape_url(url, os.getcwd())
 
 # TODO: Add docstrings 
 # TODO: Parse opencv inputs from screenshots
 # TODO: Webscrape match data
 # TODO: Square attacked?
-# TODO: Rank and File Arrays
 # TODO: Move encoding and bit setting
 # TODO: Move generation
 # TODO: Make Move
