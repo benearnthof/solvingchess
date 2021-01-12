@@ -80,8 +80,16 @@ BOARD_SQUARE_NUMBER = 120
 PIECES = IntEnum("PIECES", "EMPTY wP wN wB wR wQ wK bP bN bB bR bQ bK", start = 0)
 FILES = IntEnum("FILES", "FILE_A FILE_B FILE_C FILE_D FILE_E FILE_F FILE_G FILE_H FILE_NONE", start = 0)
 RANKS = IntEnum("RANKS", "RANK_1 RANK_2 RANK_3 RANK_4 RANK_5 RANK_6 RANK_7 RANK_8 RANK_NONE", start = 0)
-COLORS = IntEnum("COLORS", "WHITE BLACK BOTH")
+COLORS = IntEnum("COLORS", "WHITE BLACK BOTH", start = 0)
 START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+# lookup tables for piecelists and hardcoded values
+PieceBig = np.array([0,0,1,1,1,1,1,0,1,1,1,1,1])
+PieceMaj = np.array([0,0,0,0,1,1,1,0,0,0,1,1,1])
+PieceMin = np.array([0,0,1,1,0,0,0,0,1,1,0,0,0])
+PieceVal = np.array([0, 100, 325, 325, 550, 1000, 50000,100, 325, 325, 550, 1000, 50000])
+PieceCol = np.array([COLORS.BOTH, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, COLORS.WHITE, 
+                     COLORS.BLACK, COLORS.BLACK, COLORS.BLACK, COLORS.BLACK, COLORS.BLACK, COLORS.BLACK])
 
 # adding castling constant
 # we can access the constants through CASTLING.WQCA or SQUARES.H7 for example
@@ -142,9 +150,12 @@ class BOARD():
         # number of big pieces (Anything that is not a pawn) by color
         # major = Rooks, Queens
         # minor = Bishops, Knights
-        self.bigPieces = np.zeros(3, dtype = int)
-        self.majPieces = np.zeros(3, dtype = int)
-        self.minPieces = np.zeros(3, dtype = int)
+        self.bigPieces = np.zeros(2, dtype = int)
+        self.majPieces = np.zeros(2, dtype = int)
+        self.minPieces = np.zeros(2, dtype = int)
+        # this is the material evaluation, will not be needed for alpha zero
+        # and should require floats i think, we'll see later
+        self.material = np.zeros(2, dtype = int)
         # we can use 4 bit integer to represent castling permissions
         self.castlePerm = 0
         # we can index the history with hisPly to get any point in the history
@@ -155,9 +166,25 @@ class BOARD():
         # pLIST[PIECES.wN, 0] = SQUARES.E1
         # adding white knight to D4
         # pList[PIECES.wN, 1] = SQUARES.D4
-        
+    def updatelistsmaterial(self):
+        for i in range(0, BOARD_SQUARE_NUMBER, 1):
+            square = i
+            piece = self.pieces[i]
+            if piece != SQUARES.OFFBOARD and piece != PIECES.EMPTY:
+                color = PieceCol[piece]
+                if PieceBig[piece] == True: self.bigPieces[color] += 1
+                if PieceMin[piece] == True: self.minPieces[color] += 1
+                if PieceMaj[piece] == True: self.majPieces[color] += 1
+                self.material[color] += PieceVal[piece]
+                # piece lists
+                self.pList[piece, self.pceNum[piece]] = square
+                self.pceNum[piece] += 1
+                # setting king squares
+                if piece == PIECES.wK: self.KingSquares[COLORS.WHITE] = square
+                if piece == PIECES.bK: self.KingSquares[COLORS.BLACK] = square
         
 # short structure that is going to be needed to construct the board history
+# TODO: rewrite this as method for board class
 class UNDO():
     def __init__(self):
         self.move = [0]
@@ -274,8 +301,8 @@ def printboard(board = BOARD()):
 def printboard2(board):
     piecestr = ".PNBRQKpnbrqk"
     sidestr = "wb-"
-    rankstr = "12345678"
-    filestr = "abcdefgh"
+    # rankstr = "12345678"
+    # filestr = "abcdefgh"
     for rank in range(RANKS.RANK_8, RANKS.RANK_1-1, -1):
         printf("%d  ", (rank + 1))
         for file in range(FILES.FILE_A, FILES.FILE_H+1, 1):
@@ -482,6 +509,9 @@ printboard2(test2)
 # testing en passant square
 test3 = parsefen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
 printboard2(test3)
+
+# piecelists #18
+
 
 # TODO: Add docstrings 
 # TODO: Parse opencv inputs from screenshots
