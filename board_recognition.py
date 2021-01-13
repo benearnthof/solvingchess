@@ -130,7 +130,7 @@ cv2.waitKey()
 from checkerboard import detect_checkerboard
 
 size = (7, 7) # size of checkerboard
-image = cv2.imread('screenshot.png') # obtain checkerboard
+img = cv2.imread('screenshot.png') # obtain checkerboard
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
@@ -144,9 +144,39 @@ corners_int = corners.astype(int)
 
 for i in corners_int:
     x,y = i.ravel()
-    cv2.circle(img, (x,y), 3, (0,0,255), -1)
+    cv2.circle(img, (x,y), 11, (0,0,255), -1)
     
 cv2.imshow("image", img)
 cv2.waitKey()
 
 # this works but is super slow
+# approaches we can use to make it faster => use the thresholded image for cv2
+# rescale image to a tiny size and upscale results
+
+img = cv2.imread("screenshot.png")
+gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+gray = np.float32(gray)
+sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+sharpen = cv2.filter2D(gray, -1, sharpen_kernel)
+
+thresh = cv2.threshold(sharpen,160,255, cv2.THRESH_BINARY_INV)[1]
+dst = cv2.cornerHarris(thresh,2,3,0.04)
+
+#result is dilated for marking the corners, not important
+dst = cv2.dilate(dst,None)
+
+# Threshold for an optimal value, it may vary depending on the image.
+img[dst>0.01*dst.max()]=[0,0,255]
+
+cv2.imshow('dst',img)
+cv2.waitKey()
+
+# this is a lot faster but returns the corners of the pieces aswell
+
+# inversion 
+image_inverted = cv2.bitwise_not(grey)
+cv2.findChessboardCorners(image_inverted, (7,7))
+
+# lets try to use the preprocessing according to the sudoku grabber on 
+# https://aishack.in/tutorials/sudoku-grabber-opencv-detection/
