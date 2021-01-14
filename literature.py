@@ -14,3 +14,5 @@
 # directed acyclic graphs for alpha zero https://arxiv.org/pdf/2012.11045.pdf
 # https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
 # https://maiachess.com/ human like move gen
+
+https://arxiv.org/pdf/2009.01411.pdf
