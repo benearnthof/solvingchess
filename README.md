@@ -9,3 +9,20 @@ The general idea is as follows:
 
 I'm going to try to implement everything from scratch. 
 Currently only the detection of pieces works. 
+
+Current todo list: 
+* Add docstrings 
+* Automate CV stuff to generate training data for board recognition
+* Generate training data for board recognition
+* Train board recognition 
+* Webscrape match data
+* Square attacked?
+* Move encoding and bit setting
+* Move generation
+* Make Move
+* Perft testing 
+* Repetition detection 
+* Selfplay
+* Search
+* Evaluation 
+* Move ordering and picking

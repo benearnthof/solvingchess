@@ -583,17 +583,3 @@ def scrape_url(url, outpath):
                      "-t", "30", url])
 
 scrape_url(url, os.getcwd())
-
-# TODO: Add docstrings 
-# TODO: Parse opencv inputs from screenshots
-# TODO: Webscrape match data
-# TODO: Square attacked?
-# TODO: Move encoding and bit setting
-# TODO: Move generation
-# TODO: Make Move
-# TODO: Perft testing 
-# TODO: Repetition detection 
-# TODO: Selfplay
-# TODO: Search
-# TODO: Evaluation 
-# TODO: Move ordering and picking

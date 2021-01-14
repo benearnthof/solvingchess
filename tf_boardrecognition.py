@@ -359,3 +359,14 @@ else:
     print("Didn't have lines to slice image up.")
     
 # loopy loop
+import time
+def plot_squares(squares, interval = 0.025):
+    plt.figure()
+    for i in range(0, 64, 1):
+        plt.imshow(squares[:,:,i])
+        plt.title('Frame %d' % i)
+        plt.show()
+        clear_output(wait=True)
+        time.sleep(interval)
+    
+    
